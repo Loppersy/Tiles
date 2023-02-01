@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour {
     //Background variables
     public Sprite[] backgroundTextures;
     public GameObject background;
+    public GameObject nextBackground;
     public bool IsStuck { get; set; }
     
     //Transition mask
@@ -64,6 +65,7 @@ public class GameManager : MonoBehaviour {
 
     //Background variables
     private bool preselectedBackground;
+    private bool backgroundIsNext;
     private int currentBackground;
     private int lastBackground;
 
@@ -138,7 +140,7 @@ public class GameManager : MonoBehaviour {
         //StartCoroutine(UnlockMovement(1f));
         loadNewLevel = true;
         SwitchState(GameState.LoadLevel);
-        preselectedBackground = true;
+        // preselectedBackground = true;
     }
 
     public void DeleteAllData() {
@@ -171,6 +173,8 @@ public class GameManager : MonoBehaviour {
         nextLevel = Instantiate(levels[lastLevelPlayedNumber]);
         nextLevel.SetActive(false);
 
+        currentBackground = Random.Range(0, backgroundTextures.Length);
+        lastBackground = currentBackground;
 
         //Debug (unlock all levels):
         //////////////////////////
@@ -311,16 +315,37 @@ public class GameManager : MonoBehaviour {
     }
 
     private void BeginPlay() {
-        foreach (SpriteRenderer spriteRenderer in currentLevel.GetComponentsInChildren<SpriteRenderer>()) {
-            spriteRenderer.maskInteraction = SpriteMaskInteraction.None;
-        }
+        
+
         panelPlay.SetActive(true);
         IsStuck = false;
         isCurrentLevelCompleted = false;
         StartCoroutine(UnlockMovement(0.5f));
     }
 
+    private void SwitchLayerMasks()
+    {
+        foreach (SpriteRenderer spriteRenderer in currentLevel.GetComponentsInChildren<SpriteRenderer>())
+        {
+            spriteRenderer.maskInteraction = SpriteMaskInteraction.None;
+        }
+
+        if (backgroundIsNext)
+        {
+            background.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+            nextBackground.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+        }
+        else
+        {
+            background.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+            nextBackground.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        }
+    }
+
     private void BeginLoadLevel() {
+        lastBackground = currentBackground;
+        loadNewLevel = true;
+
         if (currentLevel != null) {
             foreach (Transform child in currentLevel.transform) {
                 if (child.GetComponent<Player>() != null) {
@@ -331,11 +356,11 @@ public class GameManager : MonoBehaviour {
             if (transitionLevel != null) {
                 Destroy(transitionLevel);
             }
-            transitionLevel = Instantiate(currentLevel);
-            Destroy(currentLevel);
+
+            transitionLevel = currentLevel;
+            currentLevel = null;
             foreach (SpriteRenderer spriteRenderer in transitionLevel.GetComponentsInChildren<SpriteRenderer>()) {
                 spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
-                Debug.Log(spriteRenderer.name + " " + spriteRenderer.maskInteraction);
             }
 
             
@@ -356,8 +381,12 @@ public class GameManager : MonoBehaviour {
         foreach (SpriteRenderer spriteRenderer in currentLevel.GetComponentsInChildren<SpriteRenderer>()) {
             spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         }
+        foreach (SpriteRenderer spriteRenderer in nextLevel.GetComponentsInChildren<SpriteRenderer>()) {
+            spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        }
         
-        StartCoroutine(Transition());
+        
+        
 
         loadNewLevel = false;
 
@@ -365,19 +394,42 @@ public class GameManager : MonoBehaviour {
                                         (GetLevelPackPosition(CurrentLevelNumber)[1] + 1);
         IsStuck = false;
         lastLevelPlayedNumber = CurrentLevelNumber;
+
+
+        
+        retrying = false;
+
+
+        SaveSystem.SaveData(levelsUnlocked, lastLevelPlayedNumber);
+        SwitchBackgroundsTransition();
+        StartCoroutine(Transition());
+    }
+
+    private void SwitchBackgroundsTransition()
+    {
         if (!preselectedBackground) {
             while (lastBackground == currentBackground) {
                 currentBackground = Random.Range(0, backgroundTextures.Length);
             }
         }
-
-        background.GetComponent<SpriteRenderer>().sprite = backgroundTextures[currentBackground];
-        preselectedBackground = false;
-        retrying = false;
-
-
-        SaveSystem.SaveData(levelsUnlocked, lastLevelPlayedNumber);
+        if (!backgroundIsNext)
+        {
+            SpriteRenderer spriteRenderer = nextBackground.GetComponent<SpriteRenderer>();
+            spriteRenderer.sprite = backgroundTextures[currentBackground];
+            spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+            background.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+            backgroundIsNext = true;
+        }
+        else
+        {
+            SpriteRenderer spriteRenderer = background.GetComponent<SpriteRenderer>();
+            spriteRenderer.sprite = backgroundTextures[currentBackground];
+            spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+            nextBackground.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+            backgroundIsNext = false;
+        }
         
+        preselectedBackground = false;
     }
 
     private IEnumerator Transition() {
@@ -387,6 +439,7 @@ public class GameManager : MonoBehaviour {
             Destroy(transitionLevel);
         }
         unloadlevel = false;
+        SwitchLayerMasks();
         SwitchState(GameState.Play);
         
     }
