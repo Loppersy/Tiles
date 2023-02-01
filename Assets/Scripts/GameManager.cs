@@ -35,6 +35,9 @@ public class GameManager : MonoBehaviour {
     public Sprite[] backgroundTextures;
     public GameObject background;
     public bool IsStuck { get; set; }
+    
+    //Transition mask
+    public GameObject transitionMask;
 
     #endregion
 
@@ -169,18 +172,18 @@ public class GameManager : MonoBehaviour {
         nextLevel.SetActive(false);
 
 
-        // //Debug (unlock all levels):
-        // //////////////////////////
-        // for (int j = 0; j < levelsUnlocked.Length; j++)
-        // {
-        //
-        //     for (int i = 0; i < levelsUnlocked[j].Length; i++)
-        //     {
-        //
-        //         levelsUnlocked[j][i] = true;
-        //     }
-        // }
-        // ////////////////////////////
+        //Debug (unlock all levels):
+        //////////////////////////
+        for (int j = 0; j < levelsUnlocked.Length; j++)
+        {
+        
+            for (int i = 0; i < levelsUnlocked[j].Length; i++)
+            {
+        
+                levelsUnlocked[j][i] = true;
+            }
+        }
+        ////////////////////////////
 
         SwitchState(GameState.Menu);
     }
@@ -308,6 +311,9 @@ public class GameManager : MonoBehaviour {
     }
 
     private void BeginPlay() {
+        foreach (SpriteRenderer spriteRenderer in currentLevel.GetComponentsInChildren<SpriteRenderer>()) {
+            spriteRenderer.maskInteraction = SpriteMaskInteraction.None;
+        }
         panelPlay.SetActive(true);
         IsStuck = false;
         isCurrentLevelCompleted = false;
@@ -327,19 +333,12 @@ public class GameManager : MonoBehaviour {
             }
             transitionLevel = Instantiate(currentLevel);
             Destroy(currentLevel);
-            foreach (Transform child in transitionLevel.transform) {
-                foreach (Transform grandchild in child.transform) {
-                    if (grandchild.gameObject.GetComponent<SpriteRenderer>() != null) {
-                        grandchild.gameObject.GetComponent<SpriteRenderer>().maskInteraction =
-                            SpriteMaskInteraction.VisibleOutsideMask;
-                        grandchild.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -1;
-                    }
-                }
+            foreach (SpriteRenderer spriteRenderer in transitionLevel.GetComponentsInChildren<SpriteRenderer>()) {
+                spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+                Debug.Log(spriteRenderer.name + " " + spriteRenderer.maskInteraction);
             }
-            StartCoroutine(Transition());
-        }
-        else {
-            StartCoroutine(Transition());
+
+            
         }
         
         
@@ -353,6 +352,13 @@ public class GameManager : MonoBehaviour {
         }
         nextLevel = Instantiate(levels[CurrentLevelNumber + 1]);
         nextLevel.SetActive(false);
+
+        foreach (SpriteRenderer spriteRenderer in currentLevel.GetComponentsInChildren<SpriteRenderer>()) {
+            spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        }
+        
+        StartCoroutine(Transition());
+
         loadNewLevel = false;
 
         currentLevelNumberUIText.text = (GetLevelPackPosition(CurrentLevelNumber)[0] + 1) + "-" +
@@ -376,7 +382,7 @@ public class GameManager : MonoBehaviour {
 
     private IEnumerator Transition() {
         transition.SetTrigger("StartLevelTransition");
-        yield return new WaitForSeconds(.6f);
+        yield return new WaitForSeconds(1f);
         if (transitionLevel != null) { 
             Destroy(transitionLevel);
         }
