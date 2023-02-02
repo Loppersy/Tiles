@@ -36,7 +36,34 @@ public class Breakable : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         _transform = GetComponent<Transform>();
         animator = GetComponent<Animator>();
+
+        Color current_color = GetBackgroundColor(GameManager.Instance.currentBackground);
+        rend.color = current_color;
+
     }
+
+    protected virtual Color GetBackgroundColor(int backgroundNumber)
+    {
+        Color current_color = Color.white;
+        switch (backgroundNumber)
+        {
+            case 0:
+                current_color = new Color(0.1f, 0.1f, 0.1f, 0.3f);
+                break;
+            case 1:
+                current_color = new Color(0.1f, 0.1f, 0.1f, 0.3f);
+                break;
+            case 2:
+                current_color = new Color(0.1f, 0.1f, 0.1f, 0.3f);
+                break;
+            case 3:
+                current_color = new Color(0.1f, 0.1f, 0.1f, 0.3f);
+                break;
+        }
+        return current_color;
+        
+    }
+    
 
     protected virtual void OnCollisionExit2D(Collision2D collision)
     {

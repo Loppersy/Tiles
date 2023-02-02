@@ -7,7 +7,7 @@ public class MovableBlock : MonoBehaviour
     protected bool isMovable = true;
     protected bool isAnimating = false;
     [SerializeReference] public Transform sphereSprite;
-    [SerializeReference] public LayerMask whatStopsMovement;
+    [SerializeReference] public LayerMask whatAllowsMovement;
     [SerializeReference] public float moveSpeed = 5f;
     [SerializeReference] public Transform player;
     protected Vector3 collisionDirection;
@@ -36,37 +36,33 @@ public class MovableBlock : MonoBehaviour
 
     protected virtual void FixedUpdate()
     {
-
-        sphereSprite.position = Vector3.MoveTowards(sphereSprite.position, transform.position, moveSpeed * Time.deltaTime);
-
-        if (Mathf.Abs(player.position.y - transform.position.y) == 1 || Mathf.Abs(player.position.x - transform.position.x) == 1)
+        sphereSprite.position = Vector3.MoveTowards(sphereSprite.position, transform.position, moveSpeed * Time.deltaTime* GameManager.Instance.levelScale);
+        if (0.7 *GameManager.Instance.levelScale < Vector3.Distance(transform.position, player.position) && Vector3.Distance(transform.position, player.position) < GameManager.Instance.levelScale *1.1f)
         {
-            collisionDirection = new Vector3(player.position.x - transform.position.x, player.position.y - transform.position.y).normalized;
+            collisionDirection =
+                new Vector3(player.position.x - transform.position.x, player.position.y - transform.position.y)
+                    .normalized;
+            Debug.Log(Physics2D.OverlapCircle(transform.position - collisionDirection * GameManager.Instance.levelScale, .2f,
+                whatAllowsMovement));
 
-            if (Physics2D.OverlapCircle(transform.position - collisionDirection, .2f, whatStopsMovement))
-            {
-                gameObject.layer = 6;
-            }
-            else
-            {
-                gameObject.layer = 7;
-            }
-        } else
-        {
-            gameObject.layer = 6;
+            gameObject.layer = Physics2D.OverlapCircle(transform.position - collisionDirection * GameManager.Instance.levelScale, .2f,
+                whatAllowsMovement) ? 7 : 6;
         }
         if (Vector3.Distance(transform.position, sphereSprite.position) == 0f && isMovable)
         {
             isAnimating = false;
         }
+
+
     }
 
     protected virtual void OnCollisionEnter2D(Collision2D collision)
     {
-      if(collision.gameObject.name == "Player" && !isAnimating)
-        {
-            if(!collision.gameObject.GetComponent<Player>().IsJumping)
-            transform.position -= collisionDirection;
-        }
+        if (collision.gameObject.name != "Player" || isAnimating ||
+            collision.gameObject.GetComponent<Player>().IsJumping ||
+            Vector3.Distance(transform.position, sphereSprite.position) != 0f) return;
+
+        // Move block objective to next tile
+        transform.position -= (collisionDirection * GameManager.Instance.levelScale);
     }
 }

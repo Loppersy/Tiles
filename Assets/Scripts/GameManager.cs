@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour {
     public GameObject panelSettings;
     public GameObject levelsGridUI;
     public GameObject levelButton;
+    public float levelScale = 1f;
     public Text currentLevelNumberUIText; //In game UI level number
 
     // All levels and their packs
@@ -66,8 +67,8 @@ public class GameManager : MonoBehaviour {
     //Background variables
     private bool preselectedBackground;
     private bool backgroundIsNext;
-    private int currentBackground;
-    private int lastBackground;
+    public int currentBackground = 0;
+    private int lastBackground = 0;
 
     //All game states
     private enum GameState {
@@ -223,7 +224,6 @@ public class GameManager : MonoBehaviour {
     #endregion
 
     #region Private Functions
-
     private void SwitchState(GameState newGameState, float delay = 0) {
         StartCoroutine(SwitchDelay(newGameState, delay));
     }
@@ -261,6 +261,11 @@ public class GameManager : MonoBehaviour {
     }
 
     private void UpdatePlay() {
+        if (Vector3.Distance(transitionMask.transform.position, new Vector3(0, 0, 0)) > 5f)
+        {
+            transitionMask.transform.position = Vector3.MoveTowards(transitionMask.transform.position, new Vector3(0, 0, 0), 0.1f);
+        }
+            
         if (currentLevel != null && isCurrentLevelCompleted && !isSwitchingState) {
             SwitchState(GameState.LevelCompleted);
         }
@@ -268,6 +273,7 @@ public class GameManager : MonoBehaviour {
             Destroy(currentLevel);
             SwitchState(GameState.LoadLevel);
         }
+
     }
 
     /**
@@ -317,10 +323,11 @@ public class GameManager : MonoBehaviour {
     private void BeginPlay() {
         
 
+        retrying = false;
         panelPlay.SetActive(true);
         IsStuck = false;
         isCurrentLevelCompleted = false;
-        StartCoroutine(UnlockMovement(0.5f));
+        StartCoroutine(UnlockMovement(0.0f));
     }
 
     private void SwitchLayerMasks()
@@ -342,14 +349,17 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    private void BeginLoadLevel() {
+    private void BeginLoadLevel()
+    {
         lastBackground = currentBackground;
         loadNewLevel = true;
 
+        Vector3 winPosition = GetWinPosition(CurrentLevelNumber);
         if (currentLevel != null) {
+            winPosition = GetWinPosition(currentLevel);
             foreach (Transform child in currentLevel.transform) {
                 if (child.GetComponent<Player>() != null) {
-                        child.GetComponent<Player>().SetIsCosmetic(true);
+                        // child.GetComponent<Player>().SetIsCosmetic(true);
                         child.GetComponent<BoxCollider2D>().enabled = false;
                 }
             }
@@ -364,6 +374,18 @@ public class GameManager : MonoBehaviour {
             }
 
             
+        }
+
+        if (retrying)
+        {
+            foreach (Button button in panelPlay.GetComponentsInChildren<Button>())
+            {
+                if (button.gameObject.name == "Retry")
+                {
+                    winPosition = new Vector3(0,-15,0);
+                }
+            }
+
         }
         
         
@@ -386,7 +408,7 @@ public class GameManager : MonoBehaviour {
         }
         
         
-        
+        FitToScreen(currentLevel);
 
         loadNewLevel = false;
 
@@ -396,13 +418,60 @@ public class GameManager : MonoBehaviour {
         lastLevelPlayedNumber = CurrentLevelNumber;
 
 
-        
-        retrying = false;
-
-
         SaveSystem.SaveData(levelsUnlocked, lastLevelPlayedNumber);
         SwitchBackgroundsTransition();
-        StartCoroutine(Transition());
+        StartCoroutine(Transition(winPosition));
+    }
+    
+    private void FitToScreen(GameObject level) {
+        var combinedBounds = new Bounds(Vector3.zero, Vector3.zero);
+        foreach (SpriteRenderer spriteRenderer in level.GetComponentsInChildren<SpriteRenderer>()) {
+            combinedBounds.Encapsulate(spriteRenderer.bounds);
+        }
+        float levelWidth = combinedBounds.size.x;
+        float levelHeight = combinedBounds.size.y;
+        
+        var camera = Camera.main;
+        if (camera == null) {
+            throw new Exception("No camera found");
+        }
+        float cameraWidth = camera.orthographicSize * 2 * camera.aspect;
+        float cameraHeight = camera.orthographicSize * 2;
+        levelScale = 1;
+        levelScale = cameraWidth / (levelWidth+1);
+
+        if (levelHeight > cameraHeight) {
+            levelScale = cameraHeight / levelHeight;
+        }
+
+        level.transform.localScale = new Vector3(levelScale, levelScale, 1);
+        
+        // Now center the level in the camera
+        Vector3 levelCenter = combinedBounds.center;
+        level.transform.position = new Vector3(-levelCenter.x, -levelCenter.y, 0);
+        
+    }
+    
+    private Vector3 GetWinPosition(int levelNumber) {
+        Vector3 winPosition = Vector3.zero;
+        foreach (Transform child in levels[levelNumber].transform) {
+            if (child.name == "Win") {
+                winPosition = child.position;
+            }
+        }
+
+        return winPosition;
+    }
+    
+    private Vector3 GetWinPosition(GameObject level) {
+        Vector3 winPosition = Vector3.zero;
+        foreach (Transform child in level.transform) {
+            if (child.name == "Win") {
+                winPosition = child.position;
+            }
+        }
+
+        return winPosition;
     }
 
     private void SwitchBackgroundsTransition()
@@ -432,16 +501,28 @@ public class GameManager : MonoBehaviour {
         preselectedBackground = false;
     }
 
-    private IEnumerator Transition() {
+    private IEnumerator Transition(Vector3 winPosition) {
+
+        SetMaskVisibility(true);
+        transitionMask.transform.position = winPosition;
         transition.SetTrigger("StartLevelTransition");
+        SwitchState(GameState.Play);
         yield return new WaitForSeconds(1f);
         if (transitionLevel != null) { 
             Destroy(transitionLevel);
         }
         unloadlevel = false;
         SwitchLayerMasks();
-        SwitchState(GameState.Play);
+        SetMaskVisibility(false);
+        foreach (Button button in panelPlay.GetComponentsInChildren<Button>()) {
+            button.interactable = true;
+        }
         
+    }
+    
+    private void SetMaskVisibility(bool visible)
+    {
+        transitionMask.SetActive(visible);
     }
     private void BeginContinueButtonClicked() {
         CurrentLevelNumber = lastLevelPlayedNumber;
@@ -512,9 +593,9 @@ public class GameManager : MonoBehaviour {
             case GameState.ContinueButtonClicked:
                 break;
             case GameState.Play:
-                panelPlay.SetActive(false);
-
-                
+                foreach (Button button in panelPlay.GetComponentsInChildren<Button>()) {
+                    button.interactable = false;
+                }
                 if (unfinishedLevel) {
                     unfinishedLevel = false;
                     Destroy(nextLevel);
@@ -523,6 +604,7 @@ public class GameManager : MonoBehaviour {
                 }
                 if(unloadlevel) {
                     Destroy(currentLevel);
+                    panelPlay.SetActive(false);
                 }
                 break;
             case GameState.LevelCompleted:

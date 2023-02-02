@@ -13,7 +13,7 @@ public class Breakable2 : Breakable
         {
             passed++;
             touched = false;
-            rend.color = Color.white;
+            rend.color = new Color(0.1f, 0.1f, 0.1f, 0.3f);
         } else if (passed == 1 && touched && collision.gameObject.name == "Player" 
                    && collision.gameObject.GetComponent<Player>() != null
                    && !collision.gameObject.GetComponent<Player>().IsCosmetic())
@@ -25,5 +25,13 @@ public class Breakable2 : Breakable
             touched = false;
         }
 
+    }
+    
+    protected override Color GetBackgroundColor(int backgroundNumber)
+    {
+        Color current_color = Color.white;
+
+        return current_color;
+        
     }
 }

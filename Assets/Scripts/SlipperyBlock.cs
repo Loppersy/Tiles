@@ -24,7 +24,7 @@ public class SlipperyBlock : MovableBlock
 
         base.FixedUpdate();
 
-        var collisions = Physics2D.OverlapCircleAll(transform.position - slidingDirection, .2f, whatStopsMovement);
+        var collisions = Physics2D.OverlapCircleAll(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement);
         if (isSliding && !isAnimating )
         {
             for (int i = 0; i < collisions.Length; i++)
@@ -32,7 +32,7 @@ public class SlipperyBlock : MovableBlock
 
                 if (collisions[i].gameObject.tag == "SlipperyBlock")
                 {
-                    slipperyCollision = Physics2D.OverlapCircle(transform.position - slidingDirection, .2f, whatStopsMovement).gameObject.GetComponent<SlipperyBlock>();
+                    slipperyCollision = Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement).gameObject.GetComponent<SlipperyBlock>();
                     gameObject.layer = 6;
                     isSliding = false;
                     hitSlipperyBlock = true;
@@ -41,7 +41,7 @@ public class SlipperyBlock : MovableBlock
             }
         }
 
-        if (Physics2D.OverlapCircle(transform.position - slidingDirection, .2f, whatStopsMovement) && !isAnimating)
+        if (!Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement) && !isAnimating)
         {
             isSliding = false;
         }

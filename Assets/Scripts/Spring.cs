@@ -36,7 +36,7 @@ public class Spring : MonoBehaviour
         isJumping = true;
         yield return new WaitForSecondsRealtime(seconds);
         Vector3 collisionDirection = new Vector3(jumper.transform.position.x - SpherePos.x, jumper.transform.position.y - SpherePos.y).normalized;
-        jumper.transform.position += new Vector3((float)(collisionDirection.x * distance), (float)(collisionDirection.y * distance));
+        jumper.transform.position += new Vector3((float)(collisionDirection.x * distance * GameManager.Instance.levelScale), (float)(collisionDirection.y * distance* GameManager.Instance.levelScale));
         jumper.IsMovementLocked = false;
         isJumping = false;
     }
@@ -46,7 +46,7 @@ public class Spring : MonoBehaviour
         isJumping = true;
         yield return new WaitForSecondsRealtime(seconds);
         Vector3 collisionDirection = new Vector3(jumper.transform.position.x - SpherePos.x, jumper.transform.position.y - SpherePos.y).normalized;
-        jumper.transform.position += new Vector3((float)(collisionDirection.x * distance), (float)(collisionDirection.y * distance));
+        jumper.transform.position += new Vector3((float)(collisionDirection.x * distance* GameManager.Instance.levelScale), (float)(collisionDirection.y * distance* GameManager.Instance.levelScale));
         jumper.IsMovable = true;
         isJumping = false;
     }

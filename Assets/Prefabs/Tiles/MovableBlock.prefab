@@ -132,9 +132,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sphereSprite: {fileID: 7911677085462240919}
-  whatStopsMovement:
+  whatAllowsMovement:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 128
   moveSpeed: 5
   player: {fileID: 0}
 --- !u!61 &-472716222891353571

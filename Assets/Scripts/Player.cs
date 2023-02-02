@@ -61,22 +61,9 @@ public class Player : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision) {
         if (IsCosmetic()) return;
         
-        if (Physics2D.OverlapCircle(transform.position + new Vector3(1f, 0f, 0f), .2f, whatStopsMovement)
-            && Physics2D.OverlapCircle(transform.position + new Vector3(-1f, 0f, 0f), .2f, whatStopsMovement)
-            && Physics2D.OverlapCircle(transform.position + new Vector3(0f, 1f, 0f), .2f, whatStopsMovement)
-            && Physics2D.OverlapCircle(transform.position + new Vector3(0f, -1f, 0f), .2f, whatStopsMovement)
-            && !IsJumping)
-        {
-
-
-            if (CheckWin() && collision.gameObject.name == "Win") {
-                IsMovementLocked = true;
-                GameManager.Instance.SetIsCurrentLevelCompleted(true);
-            }
-            else
-            {
-                //               StartCoroutine(stuck(1.5f));
-            }
+        if (CheckWin() && collision.gameObject.name == "Win") {
+            IsMovementLocked = true;
+            GameManager.Instance.SetIsCurrentLevelCompleted(true);
         }
     }
 
@@ -120,6 +107,7 @@ public class Player : MonoBehaviour
                 brokenNumber++;
             }
         }
+
         return brokenNumber == breakables.childCount && !IsJumping && !IsMovementLocked;
     }
     #region Private Functions
@@ -170,7 +158,7 @@ public class Player : MonoBehaviour
     private void Move() {
         if(IsCosmetic()) return;
         // Move towards targetPoint at all times.
-        spriteTransform.position = Vector3.MoveTowards(spriteTransform.position, transform.position, velocity * Time.deltaTime);
+        spriteTransform.position = Vector3.MoveTowards(spriteTransform.position, transform.position, velocity * GameManager.Instance.levelScale * Time.deltaTime);
 
         // Move targetPoint if it is on top of the Player.
         if (Vector3.Distance(transform.position, spriteTransform.position) <= .3f 
@@ -180,9 +168,9 @@ public class Player : MonoBehaviour
             //Move horizontaally...
             if (Mathf.Abs(normalizedDirection.x) == 1.0f) {
                 //..only if no overlap with objects that do not allow movement
-                if (!Physics2D.OverlapCircle(transform.position + new Vector3(normalizedDirection.x, 0f, 0f), .2f, whatStopsMovement)
-                    && Physics2D.OverlapCircle(transform.position + new Vector3(normalizedDirection.x, 0f, 0f), .2f, whatAllowsMovement)) {
-                    transform.position += new Vector3(normalizedDirection.x, 0f, 0f);
+                if (!Physics2D.OverlapCircle(transform.position + new Vector3(normalizedDirection.x* GameManager.Instance.levelScale, 0f, 0f), .2f, whatStopsMovement)
+                    && Physics2D.OverlapCircle(transform.position + new Vector3(normalizedDirection.x* GameManager.Instance.levelScale , 0f, 0f), .2f, whatAllowsMovement)) {
+                    transform.position += new Vector3(normalizedDirection.x * GameManager.Instance.levelScale, 0f, 0f);
 
                     
                     //Change animations
@@ -196,9 +184,9 @@ public class Player : MonoBehaviour
                 //... or move vertically
             } else if (Mathf.Abs(normalizedDirection.y) == 1.0f) {
                 //..only if no overlap with objects that do not allow movement
-                if (!Physics2D.OverlapCircle(transform.position + new Vector3(0f, normalizedDirection.y, 0f), .2f, whatStopsMovement)
-                    && Physics2D.OverlapCircle(transform.position + new Vector3(0f, normalizedDirection.y, 0f), .2f, whatAllowsMovement)) {
-                    transform.position += new Vector3(0f, normalizedDirection.y, 0f);
+                if (!Physics2D.OverlapCircle(transform.position + new Vector3(0f, normalizedDirection.y* GameManager.Instance.levelScale, 0f), .2f, whatStopsMovement)
+                    && Physics2D.OverlapCircle(transform.position + new Vector3(0f, normalizedDirection.y* GameManager.Instance.levelScale , 0f), .2f, whatAllowsMovement)) {
+                    transform.position += new Vector3(0f, normalizedDirection.y * GameManager.Instance.levelScale, 0f);
                     
                 }
             }
