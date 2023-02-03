@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor;
 
 using TMPro;
+using UnityEngine.UI;
 
 [ExecuteInEditMode]
 
@@ -25,6 +26,11 @@ public class getParentName : MonoBehaviour
         TextMeshProUGUI textmeshPro = GetComponent<TextMeshProUGUI>();
 
         textmeshPro.SetText(parentName);
+
+        Button parentButton = transform.parent.GetComponent<Button>();
+
+        if (parentButton == null) return;
+        textmeshPro.color = parentButton.interactable ? Color.white : new Color(255,255,255,0.2f);
 
     }
 }
