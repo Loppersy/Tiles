@@ -96,7 +96,7 @@ public class Breakable : MonoBehaviour
 
     void Update()
     {
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(1f, 0f, 0f), .2f))
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(1f, 0f, 0f) *GameManager.Instance.levelScale, .2f))
         {
             if (collider.tag == "IsBreakable")
             {
@@ -105,7 +105,7 @@ public class Breakable : MonoBehaviour
             }
             right = false;
         }
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(-1f, 0f, 0f), .2f))
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(-1f, 0f, 0f)*GameManager.Instance.levelScale, .2f))
         {
             if (collider.tag == "IsBreakable")
             {
@@ -114,7 +114,7 @@ public class Breakable : MonoBehaviour
             }
             left = false;
         }
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(0f, 1f, 0f), .2f))
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(0f, 1f, 0f)*GameManager.Instance.levelScale, .2f))
         {
             if (collider.tag == "IsBreakable")
             {
@@ -123,7 +123,7 @@ public class Breakable : MonoBehaviour
             }
             top = false;
         }
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(0f, -1f, 0f), .2f))
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + new Vector3(0f, -1f, 0f)*GameManager.Instance.levelScale, .2f))
         {
             if (collider.tag == "IsBreakable")
             {

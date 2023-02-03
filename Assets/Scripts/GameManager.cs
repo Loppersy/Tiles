@@ -514,8 +514,9 @@ public class GameManager : MonoBehaviour {
         unloadlevel = false;
         SwitchLayerMasks();
         SetMaskVisibility(false);
-        foreach (Button button in panelPlay.GetComponentsInChildren<Button>()) {
-            button.interactable = true;
+        foreach (Button button in panelPlay.GetComponentsInChildren<Button>())
+        {
+            button.interactable = button.name is not ("Rewind" or "Hints");
         }
         
     }
