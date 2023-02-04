@@ -943,25 +943,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3043751822217678123}
     m_Modifications:
-    - target: {fileID: 928480854338939993, guid: b64e5507ab011aa4f830d7cbda77b08c, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 735ab448bda81490bac50b756bc317a8, type: 3}
-    - target: {fileID: 928480854338939993, guid: b64e5507ab011aa4f830d7cbda77b08c, type: 3}
-      propertyPath: m_SpriteSortPoint
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1787142074339797877, guid: b64e5507ab011aa4f830d7cbda77b08c, type: 3}
       propertyPath: m_Name
       value: Key
       objectReference: {fileID: 0}
     - target: {fileID: 4133203100733738626, guid: b64e5507ab011aa4f830d7cbda77b08c, type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.x
-      value: 0.64
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4133203100733738626, guid: b64e5507ab011aa4f830d7cbda77b08c, type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.y
-      value: 0.64
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5917227059801412433, guid: b64e5507ab011aa4f830d7cbda77b08c, type: 3}
       propertyPath: m_RootOrder

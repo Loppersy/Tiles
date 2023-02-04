@@ -385,8 +385,8 @@ ScriptedImporter:
     - {x: 22, y: 21}
     - {x: 0, y: 22}
     tessellationDetail: 0
-    uvTransform: {x: 313, y: 436}
-    spritePosition: {x: 198, y: 115}
+    uvTransform: {x: 347, y: 469}
+    spritePosition: {x: 200, y: 116}
   - name: LeftEye
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -394,7 +394,7 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 355
+      x: 387
       y: 469
       width: 32
       height: 31
@@ -678,8 +678,8 @@ ScriptedImporter:
     - {x: 22, y: 21}
     - {x: 0, y: 22}
     tessellationDetail: 0
-    uvTransform: {x: 320, y: 436}
-    spritePosition: {x: 148, y: 115}
+    uvTransform: {x: 387, y: 469}
+    spritePosition: {x: 150, y: 116}
   - name: Body
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -4327,7 +4327,7 @@ ScriptedImporter:
     parentIndex: -1
     spriteID: d14b2c03f11924043b4374a8cde0fa32
     layerID: 50
-    mosaicPosition: {x: 355, y: 469}
+    mosaicPosition: {x: 387, y: 469}
     flatten: 0
     isImported: 1
     isVisible: 1

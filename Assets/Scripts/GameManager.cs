@@ -16,7 +16,11 @@ public class GameManager : MonoBehaviour {
     public GameObject panelGameOver;
     public GameObject panelPackSelector;
     public GameObject packsButtons;
+    
     public GameObject panelLevelSelector;
+    public GameObject panelLevelSelectorBackground;
+    public Sprite[] buttonImages;
+    
     public GameObject panelSettings;
     public GameObject levelsGridUI;
     public GameObject levelButton;
@@ -550,7 +554,18 @@ public class GameManager : MonoBehaviour {
                     loadNewLevel = true;//When loading a different level than the preloaded one.
                     SwitchState(GameState.LoadLevel);
                 });
+            // change button image to a random button image
+            var buttonImage = buttons[i].GetComponent<Image>();
+            buttonImage.sprite = buttonImages[Random.Range(0, buttonImages.Length)];
+            
         }
+        
+        //Set the dimensions of the background image to fit the grid + padding = half the size of a cell
+        var gridLayout = levelsGrid.GetComponent<GridLayoutGroup>();
+        var levelSelectorBackground = panelLevelSelectorBackground.GetComponent<RectTransform>();
+        var gridLayoutWidth = gridLayout.cellSize.x * gridLayout.constraintCount + gridLayout.spacing.x * (gridLayout.constraintCount - 1);
+        var gridLayoutHeight = gridLayout.cellSize.y * (Mathf.CeilToInt((float)buttons.Length / gridLayout.constraintCount) + .5f) + gridLayout.spacing.y * (Mathf.CeilToInt((float)buttons.Length / gridLayout.constraintCount) - 1);
+        levelSelectorBackground.sizeDelta = new Vector2(gridLayoutWidth, gridLayoutHeight);
     }
 
     private void BeginPackSelector() {
