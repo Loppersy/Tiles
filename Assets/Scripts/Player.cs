@@ -21,7 +21,9 @@ public class Player : MonoBehaviour
     public LayerMask whatStopsMovement; //Layer that stops the player from moving in that direction
     public LayerMask whatAllowsMovement; //Layer that allows the player from moving in that direction
     private bool isCosmetic;
-    private static readonly int MoveAnimation = Animator.StringToHash("MoveAnimation");
+
+    private static readonly int FacingLeft = Animator.StringToHash("FacingLeft");
+    //private static readonly int MoveAnimation = Animator.StringToHash("MoveAnimation");
 
 
     public bool IsMovementLocked { set; get; } = true;
@@ -153,7 +155,7 @@ public class Player : MonoBehaviour
         //Reset values if no touch is detected
         if (Input.touchCount == 0) {
             touchBeginPosition = touchEndPosition;
-            animator.SetInteger("MoveAnimation", 0);
+            //animator.SetInteger("MoveAnimation", 0);
         }
 
     }
@@ -183,10 +185,14 @@ public class Player : MonoBehaviour
             {
                 //Change animations
                 case 1:
-                    animator.SetInteger(MoveAnimation, 1);
+                    animator.SetTrigger("RightMove");
+                    // If right, don't invert the scale of the sprite
+                    spriteTransform.localScale = new Vector3(1, 1, 1);
                     break;
                 case -1:
-                    animator.SetInteger(MoveAnimation, 3);
+                    // If left, invert the scale of the sprite
+                    spriteTransform.localScale = new Vector3(-1, 1, 1);
+                    animator.SetTrigger("RightMove");
                     break;
             }
 
@@ -199,16 +205,16 @@ public class Player : MonoBehaviour
             
             transform.position += new Vector3(0f, normalizedDirection.y * GameManager.Instance.levelScale, 0f);
             
-            // switch (normalizedDirection.y)
-            // {
-            //     //Change animations
-            //     case 1:
-            //         animator.SetInteger(MoveAnimation, 2);
-            //         break;
-            //     case -1:
-            //         animator.SetInteger(MoveAnimation, 0);
-            //         break;
-            // }
+            switch (normalizedDirection.y)
+            {
+                //Change animations
+                case 1:
+                    animator.SetTrigger("UpMove");
+                    break;
+                case -1:
+                    animator.SetTrigger("DownMove");
+                    break;
+            }
         }
     }
 
