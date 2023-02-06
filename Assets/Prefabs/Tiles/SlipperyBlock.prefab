@@ -96,9 +96,9 @@ GameObject:
   - component: {fileID: 1004205359043744279}
   - component: {fileID: 1188240117381840000}
   - component: {fileID: -5524315216452973032}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SlipperyBlock
-  m_TagString: SlipperyBlock
+  m_TagString: MovableBlock
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -176,10 +176,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae9678aa9bfe29142bbfbde151511177, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sphereSprite: {fileID: 7375880205775153289}
+  spriteImage: {fileID: 7375880205775153289}
   whatAllowsMovement:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
+  whatStopsMovement:
+    serializedVersion: 2
+    m_Bits: 64
   moveSpeed: 5
   player: {fileID: 0}
 --- !u!50 &-5524315216452973032

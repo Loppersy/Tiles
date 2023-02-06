@@ -4,59 +4,78 @@ using UnityEngine;
 
 public class SlipperyBlock : MovableBlock
 {
-    private bool isSliding = false;
+    public bool isSliding = false;
     private Vector3 slidingDirection;
     private SlipperyBlock slipperyCollision;
-    private bool hitSlipperyBlock = false;
-    protected override void OnCollisionEnter2D(Collision2D collision)
+    
+    protected override void Start()
     {
-        if(collision.gameObject.name == "Player" && !isAnimating)
-        {
-            isSliding = true;
-            slidingDirection = collisionDirection;
-        }
-
+        base.Start();
+        blockType = BlockType.SlipperyBlock;
+        
     }
 
     protected override void FixedUpdate()
     {
-
-
         base.FixedUpdate();
-
-        var collisions = Physics2D.OverlapCircleAll(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement);
-        if (isSliding && !isAnimating )
+        
+        //Check if the next tile allows movement. If not, stop sliding.
+        if (isSliding && !isAnimating && !Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement))
         {
-            for (int i = 0; i < collisions.Length; i++)
+            isSliding = false;
+            Debug.Log("Hit Wall");
+        }
+        
+        //Check if the next tile has any movable blocks. If so, move them and stop sliding.
+        if (isSliding 
+            && !isAnimating 
+            && IsSpriteOnGoal(0.1f)
+            && Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatStopsMovement))
+        {
+            AttemptMovingObjects(whatStopsMovement);
+            isSliding = false;
+            Debug.Log("Hit Movable Block");
+        }
+
+        //Move the block if it is sliding.
+        if (isSliding && !isAnimating && IsSpriteOnGoal(0.1f))
+        {
+            MoveBlock();
+        }
+    }
+    
+    private bool AttemptMovingObjects(LayerMask layerMask)
+    {
+        
+        var collisions = Physics2D.OverlapCircleAll(
+                transform.position - slidingDirection * GameManager.Instance.levelScale, .2f, layerMask);
+        
+        if (collisions.Length == 0) return false;
+
+        foreach (var collision in collisions)
+        {
+            if (!collision.gameObject.CompareTag("MovableBlock")) continue;
+            if (!collision.gameObject.GetComponent<MovableBlock>().AttemptToMove(this.gameObject))
             {
-
-                if (collisions[i].gameObject.tag == "SlipperyBlock")
-                {
-                    slipperyCollision = Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement).gameObject.GetComponent<SlipperyBlock>();
-                    gameObject.layer = 6;
-                    isSliding = false;
-                    hitSlipperyBlock = true;
-                }
-
+                return false;
             }
         }
 
-        if (!Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement) && !isAnimating)
+        foreach (var collision in collisions)
         {
-            isSliding = false;
+            if (!collision.gameObject.CompareTag("MovableBlock")) continue;
+            collision.gameObject.GetComponent<MovableBlock>().MoveBlock();
         }
+        return true;
+    }
+    
+    public override void MoveBlock()
+    {
+        slidingDirection = collisionDirection;
+        if(Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatAllowsMovement)
+           && !Physics2D.OverlapCircle(transform.position - slidingDirection* GameManager.Instance.levelScale, .2f, whatStopsMovement)) isSliding = true;
+        base.MoveBlock();
 
-        if (isSliding && Vector3.Distance(transform.position, sphereSprite.position) == 0f && !isAnimating) 
-        {
-            transform.position -= slidingDirection;
-
-        }
-
-        if (hitSlipperyBlock && Vector3.Distance(transform.position, sphereSprite.position) == 0f)
-        {
-            slipperyCollision.slidingDirection = slidingDirection;
-            slipperyCollision.isSliding = true;
-            hitSlipperyBlock = false;
-        }
+        
     }
 }

@@ -259,7 +259,8 @@ public class GameManager : MonoBehaviour {
         lastLevelPlayedNumber = SaveSystem.LoadData().lastLevelPlayed;
     }
     private void UpdateGameOver() {
-        if (Input.anyKeyDown) {
+        if (Input.touchCount > 0) {
+            
             SwitchState(GameState.Menu);
         }
     }
@@ -304,6 +305,7 @@ public class GameManager : MonoBehaviour {
 
     private void BeginGameOver() {
         panelGameOver.SetActive(true);
+        
     }
 
     private void BeginLevelCompleted() {
@@ -401,15 +403,23 @@ public class GameManager : MonoBehaviour {
             currentLevel = nextLevel;
             currentLevel.SetActive(true); 
         }
-        nextLevel = Instantiate(levels[CurrentLevelNumber + 1]);
-        nextLevel.SetActive(false);
+        
+        if (CurrentLevelNumber + 1 < levels.Length) {
+            nextLevel = Instantiate(levels[CurrentLevelNumber + 1]);
+            nextLevel.SetActive(false);
+        }
+        else {
+            nextLevel = null;
+        }
 
         foreach (SpriteRenderer spriteRenderer in currentLevel.GetComponentsInChildren<SpriteRenderer>()) {
             spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         }
-        foreach (SpriteRenderer spriteRenderer in nextLevel.GetComponentsInChildren<SpriteRenderer>()) {
-            spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
-        }
+        
+        if (nextLevel != null)
+            foreach (SpriteRenderer spriteRenderer in nextLevel.GetComponentsInChildren<SpriteRenderer>()) {
+                spriteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+            }
         
         
         FitToScreen(currentLevel);
@@ -609,19 +619,7 @@ public class GameManager : MonoBehaviour {
             case GameState.ContinueButtonClicked:
                 break;
             case GameState.Play:
-                foreach (Button button in panelPlay.GetComponentsInChildren<Button>()) {
-                    button.interactable = false;
-                }
-                if (unfinishedLevel) {
-                    unfinishedLevel = false;
-                    Destroy(nextLevel);
-                    nextLevel = Instantiate(levels[CurrentLevelNumber]);
-                    nextLevel.SetActive(false);
-                }
-                if(unloadlevel) {
-                    Destroy(currentLevel);
-                    panelPlay.SetActive(false);
-                }
+                EndPlay();
                 break;
             case GameState.LevelCompleted:
                 // panelLevelCompleted.SetActive(false);
@@ -630,7 +628,8 @@ public class GameManager : MonoBehaviour {
             case GameState.LoadLevel:
                 break;
             case GameState.GameOver:
-                panelPlay.SetActive(false);
+                unloadlevel = true;
+                EndPlay();
                 panelGameOver.SetActive(false);
                 break;
             case GameState.Settings:
@@ -638,6 +637,28 @@ public class GameManager : MonoBehaviour {
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void EndPlay()
+    {
+        foreach (Button button in panelPlay.GetComponentsInChildren<Button>())
+        {
+            button.interactable = false;
+        }
+
+        if (unfinishedLevel)
+        {
+            unfinishedLevel = false;
+            Destroy(nextLevel);
+            nextLevel = Instantiate(levels[CurrentLevelNumber]);
+            nextLevel.SetActive(false);
+        }
+
+        if (unloadlevel)
+        {
+            Destroy(currentLevel);
+            panelPlay.SetActive(false);
         }
     }
 

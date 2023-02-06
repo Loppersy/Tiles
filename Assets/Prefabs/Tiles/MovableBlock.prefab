@@ -96,9 +96,9 @@ GameObject:
   - component: {fileID: 8437380602142380992}
   - component: {fileID: -472716222891353571}
   - component: {fileID: 6737639230514641425}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: MovableBlock
-  m_TagString: Untagged
+  m_TagString: MovableBlock
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -131,10 +131,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a21db604b30fb3a468d3b8f7b8c351b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sphereSprite: {fileID: 7911677085462240919}
+  spriteImage: {fileID: 7911677085462240919}
   whatAllowsMovement:
     serializedVersion: 2
     m_Bits: 128
+  whatStopsMovement:
+    serializedVersion: 2
+    m_Bits: 64
   moveSpeed: 5
   player: {fileID: 0}
 --- !u!61 &-472716222891353571

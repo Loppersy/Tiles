@@ -25,10 +25,14 @@ public class Spring : MonoBehaviour
         else if (collision.transform.parent.gameObject.name == "MovingBlocks")
         {
             block = collision.gameObject.GetComponent<MovableBlock>();
+            if (block.GetComponent<SlipperyBlock>() != null)
+            {
+                block.GetComponent<SlipperyBlock>().isSliding = false;
+            }
             block.IsMovable = false;
             block.IsAnimating = true;
-            SpherePos = block.sphereSprite.position;
-            if (!isJumping) { StartCoroutine(blockJump(.5f, distance, block)); }
+            SpherePos = block.spriteImage.position;
+            if (!isJumping) { StartCoroutine(blockJump(0f, distance, block)); }
         }
     }
     IEnumerator jump(float seconds, float distance, Player jumper)
@@ -49,5 +53,9 @@ public class Spring : MonoBehaviour
         jumper.transform.position += new Vector3((float)(collisionDirection.x * distance* GameManager.Instance.levelScale), (float)(collisionDirection.y * distance* GameManager.Instance.levelScale));
         jumper.IsMovable = true;
         isJumping = false;
+        if(jumper.GetComponent<SlipperyBlock>() != null)
+        {
+            jumper.GetComponent<SlipperyBlock>().isSliding = true;
+        }
     }
 }

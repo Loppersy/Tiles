@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,6 +21,7 @@ public class Player : MonoBehaviour
     public LayerMask whatStopsMovement; //Layer that stops the player from moving in that direction
     public LayerMask whatAllowsMovement; //Layer that allows the player from moving in that direction
     private bool isCosmetic;
+    private static readonly int MoveAnimation = Animator.StringToHash("MoveAnimation");
 
 
     public bool IsMovementLocked { set; get; } = true;
@@ -50,7 +52,7 @@ public class Player : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
 
         ChangeDirections();
@@ -157,40 +159,111 @@ public class Player : MonoBehaviour
     }
     private void Move() {
         if(IsCosmetic()) return;
+        
         // Move towards targetPoint at all times.
-        spriteTransform.position = Vector3.MoveTowards(spriteTransform.position, transform.position, velocity * GameManager.Instance.levelScale * Time.deltaTime);
+        MoveSpriteTowardsGoal();
 
         // Move targetPoint if it is on top of the Player.
-        if (Vector3.Distance(transform.position, spriteTransform.position) <= .3f 
-            && Input.touchCount == 0 
-            && !IsMovementLocked) {
-            IsJumping = false;
-            //Move horizontaally...
-            if (Mathf.Abs(normalizedDirection.x) == 1.0f) {
-                //..only if no overlap with objects that do not allow movement
-                if (!Physics2D.OverlapCircle(transform.position + new Vector3(normalizedDirection.x* GameManager.Instance.levelScale, 0f, 0f), .2f, whatStopsMovement)
-                    && Physics2D.OverlapCircle(transform.position + new Vector3(normalizedDirection.x* GameManager.Instance.levelScale , 0f, 0f), .2f, whatAllowsMovement)) {
-                    transform.position += new Vector3(normalizedDirection.x * GameManager.Instance.levelScale, 0f, 0f);
+        if (!IsSpriteOnGoal(0.2f) || Input.touchCount != 0 || IsMovementLocked) return;
+        IsJumping = false;
+        //Move horizontaally...
+        const float tolerance = .1f;
+        if (Math.Abs(Mathf.Abs(normalizedDirection.x) - 1.0f) < tolerance)
+        {
+            //..only if overlaps with a tile that allows movement and the objects there are moveable
+            if (!CheckNextTileLayer(whatAllowsMovement, normalizedDirection, horizontal:true)) return;
+            
+            if (!AttemptMovingObjects(whatStopsMovement, normalizedDirection, horizontal:true)) return;
 
-                    
-                    //Change animations
-                    if (normalizedDirection.x == 1) {
-                        animator.SetInteger("MoveAnimation", 1);
-                    } else if (normalizedDirection.x == -1) {
-                        animator.SetInteger("MoveAnimation", 3);
-                    }
-                }
 
-                //... or move vertically
-            } else if (Mathf.Abs(normalizedDirection.y) == 1.0f) {
-                //..only if no overlap with objects that do not allow movement
-                if (!Physics2D.OverlapCircle(transform.position + new Vector3(0f, normalizedDirection.y* GameManager.Instance.levelScale, 0f), .2f, whatStopsMovement)
-                    && Physics2D.OverlapCircle(transform.position + new Vector3(0f, normalizedDirection.y* GameManager.Instance.levelScale , 0f), .2f, whatAllowsMovement)) {
-                    transform.position += new Vector3(0f, normalizedDirection.y * GameManager.Instance.levelScale, 0f);
-                    
-                }
+            transform.position += new Vector3(normalizedDirection.x * GameManager.Instance.levelScale, 0f, 0f);
+
+
+            switch (normalizedDirection.x)
+            {
+                //Change animations
+                case 1:
+                    animator.SetInteger(MoveAnimation, 1);
+                    break;
+                case -1:
+                    animator.SetInteger(MoveAnimation, 3);
+                    break;
             }
+
+            //... or move vertically
+        } else if (Math.Abs(Mathf.Abs(normalizedDirection.y) - 1.0f) < tolerance) {
+            //..only if overlaps with a tile that allows movement and the objects there are moveable
+            if (!CheckNextTileLayer(whatAllowsMovement, normalizedDirection, horizontal:false)) return;
+            
+            if (!AttemptMovingObjects(whatStopsMovement, normalizedDirection, horizontal:false)) return;
+            
+            transform.position += new Vector3(0f, normalizedDirection.y * GameManager.Instance.levelScale, 0f);
+            
+            // switch (normalizedDirection.y)
+            // {
+            //     //Change animations
+            //     case 1:
+            //         animator.SetInteger(MoveAnimation, 2);
+            //         break;
+            //     case -1:
+            //         animator.SetInteger(MoveAnimation, 0);
+            //         break;
+            // }
         }
+    }
+
+    private bool AttemptMovingObjects(LayerMask layerMask, Vector2 _normalizedDirection, bool horizontal = true)
+    {
+        Collider2D[] collisions;
+        if (horizontal){ 
+            collisions = Physics2D.OverlapCircleAll(
+                transform.position + new Vector3(_normalizedDirection.x * GameManager.Instance.levelScale, 0f, 0f),
+                .2f, layerMask);
+        }
+        else
+        {
+            collisions = Physics2D.OverlapCircleAll(
+                transform.position + new Vector3(0f, _normalizedDirection.y * GameManager.Instance.levelScale, 0f),
+                .2f, layerMask);
+        }
+        foreach (var collision in collisions)
+        {
+            if (!collision.gameObject.CompareTag("MovableBlock")) return false;
+            if (!collision.gameObject.GetComponent<MovableBlock>().AttemptToMove(this.gameObject)) return false;
+        }
+
+        foreach (var collision in collisions)
+        {
+            collision.gameObject.GetComponent<MovableBlock>().MoveBlock();
+        }
+        return true;
+    }
+
+    private Collider2D CheckNextTileLayer(LayerMask layerMask, Vector2 _normalizedDirection, bool horizontal = true)
+    {
+        if (horizontal)
+        {
+            return Physics2D.OverlapCircle(
+                transform.position + new Vector3(_normalizedDirection.x * GameManager.Instance.levelScale, 0f, 0f),
+                .2f, layerMask);
+        }
+        else
+        {
+            return Physics2D.OverlapCircle(
+                transform.position + new Vector3(0f, _normalizedDirection.y * GameManager.Instance.levelScale, 0f),
+                .2f, layerMask);
+        }
+    }
+
+    private bool IsSpriteOnGoal(float threshold = .1f)
+    {
+        return (Vector3.Distance(transform.position, spriteTransform.position) <= threshold);
+    }
+
+    private void MoveSpriteTowardsGoal()
+    {
+        spriteTransform.position = Vector3.MoveTowards(spriteTransform.position, transform.position,
+            velocity * GameManager.Instance.levelScale * Time.deltaTime);
     }
 
     #endregion
