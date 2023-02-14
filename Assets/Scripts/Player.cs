@@ -180,7 +180,7 @@ public class Player : MonoBehaviour
 
             transform.position += new Vector3(normalizedDirection.x * GameManager.Instance.levelScale, 0f, 0f);
 
-
+            if (IsJumping) return;
             switch (normalizedDirection.x)
             {
                 //Change animations
@@ -205,6 +205,7 @@ public class Player : MonoBehaviour
             
             transform.position += new Vector3(0f, normalizedDirection.y * GameManager.Instance.levelScale, 0f);
             
+            if (IsJumping) return;
             switch (normalizedDirection.y)
             {
                 //Change animations

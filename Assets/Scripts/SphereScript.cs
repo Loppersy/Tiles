@@ -7,7 +7,7 @@ public class SphereScript : MonoBehaviour
 
     public GameObject OgPlayer
     {
-        set { ogPlayer = value; }
-        get { return ogPlayer; }
+        set => ogPlayer = value;
+        get => ogPlayer;
     }
 }

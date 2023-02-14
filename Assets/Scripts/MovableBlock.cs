@@ -44,6 +44,8 @@ public class MovableBlock : MonoBehaviour
         player = transform.parent.parent.GetChild(1);
         spriteImage.parent = transform.parent;
         blockType = BlockType.MovableBlock;
+        spriteImage.GetComponent<MovableBlockSprite>().BlockAttachedTo = gameObject;
+        
     }
 
     protected virtual void FixedUpdate()
