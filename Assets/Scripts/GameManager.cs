@@ -101,6 +101,9 @@ public class GameManager : MonoBehaviour {
     
     //Transitions
     public Animator transition;
+    
+    // level counter for ads
+    private int levelsWithoutAds = 0;
 
     #endregion
 
@@ -171,6 +174,12 @@ public class GameManager : MonoBehaviour {
     #region Unity Functions
 
     private void Start() {
+        
+        // Initialize ads
+        IronSource.Agent.init("18ccc2fbd", IronSourceAdUnits.INTERSTITIAL);
+        IronSource.Agent.validateIntegration();
+        
+        // Load saved data
         LoadSavedProgress();
 
         Instance = this;
@@ -183,19 +192,106 @@ public class GameManager : MonoBehaviour {
 
         //Debug (unlock all levels):
         //////////////////////////
-        for (int j = 0; j < levelsUnlocked.Length; j++)
-        {
-        
-            for (int i = 0; i < levelsUnlocked[j].Length; i++)
-            {
-        
-                levelsUnlocked[j][i] = true;
-            }
-        }
+        // for (int j = 0; j < levelsUnlocked.Length; j++)
+        // {
+        //
+        //     for (int i = 0; i < levelsUnlocked[j].Length; i++)
+        //     {
+        //
+        //         levelsUnlocked[j][i] = true;
+        //     }
+        // }
         ////////////////////////////
 
         SwitchState(GameState.Menu);
     }
+    
+    # region Ads
+
+    void OnApplicationPause(bool isPaused) {                 
+        IronSource.Agent.onApplicationPause(isPaused);
+    }
+
+    private void OnEnable()
+    {
+        IronSourceEvents.onSdkInitializationCompletedEvent += SdkInitializationCompletedEvent;
+        
+        // Interstitial
+        IronSourceEvents.onInterstitialAdReadyEvent += InterstitialAdReadyEvent;
+        IronSourceEvents.onInterstitialAdLoadFailedEvent += InterstitialAdLoadFailedEvent;        
+        IronSourceEvents.onInterstitialAdShowSucceededEvent += InterstitialAdShowSucceededEvent; 
+        IronSourceEvents.onInterstitialAdShowFailedEvent += InterstitialAdShowFailedEvent; 
+        IronSourceEvents.onInterstitialAdClickedEvent += InterstitialAdClickedEvent;
+        IronSourceEvents.onInterstitialAdOpenedEvent += InterstitialAdOpenedEvent;
+        IronSourceEvents.onInterstitialAdClosedEvent += InterstitialAdClosedEvent;
+    
+        //Add AdInfo Interstitial Events
+        IronSourceInterstitialEvents.onAdReadyEvent += InterstitialOnAdReadyEvent;
+        IronSourceInterstitialEvents.onAdLoadFailedEvent += InterstitialOnAdLoadFailed;
+        IronSourceInterstitialEvents.onAdOpenedEvent += InterstitialOnAdOpenedEvent;
+        IronSourceInterstitialEvents.onAdClickedEvent += InterstitialOnAdClickedEvent;
+        IronSourceInterstitialEvents.onAdShowSucceededEvent += InterstitialOnAdShowSucceededEvent;
+        IronSourceInterstitialEvents.onAdShowFailedEvent += InterstitialOnAdShowFailedEvent;
+        IronSourceInterstitialEvents.onAdClosedEvent += InterstitialOnAdClosedEvent;
+    }
+    
+    private void SdkInitializationCompletedEvent()
+    {
+         IronSource.Agent.loadInterstitial();
+    }
+
+    // Invoked when the initialization process has failed.
+// @param description - string - contains information about the failure.
+    void InterstitialAdLoadFailedEvent (IronSourceError error) {
+    }
+// Invoked when the ad fails to show.
+// @param description - string - contains information about the failure.
+    void InterstitialAdShowFailedEvent(IronSourceError error) {
+    }
+// Invoked when end user clicked on the interstitial ad
+    void InterstitialAdClickedEvent () {
+    }
+// Invoked when the interstitial ad closed and the user goes back to the application screen.
+    void InterstitialAdClosedEvent () {
+    }
+// Invoked when the Interstitial is Ready to shown after load function is called
+    void InterstitialAdReadyEvent() {
+    }
+// Invoked when the Interstitial Ad Unit has opened
+    void InterstitialAdOpenedEvent() {
+    }
+// Invoked right before the Interstitial screen is about to open.
+// NOTE - This event is available only for some of the networks. 
+// You should not treat this event as an interstitial impression, but rather use InterstitialAdOpenedEvent
+    void InterstitialAdShowSucceededEvent() {
+    }
+    
+    /************* Interstitial AdInfo Delegates *************/
+// Invoked when the interstitial ad was loaded succesfully.
+    void InterstitialOnAdReadyEvent(IronSourceAdInfo adInfo) {
+    }
+// Invoked when the initialization process has failed.
+    void InterstitialOnAdLoadFailed(IronSourceError ironSourceError) {
+    }
+// Invoked when the Interstitial Ad Unit has opened. This is the impression indication. 
+    void InterstitialOnAdOpenedEvent(IronSourceAdInfo adInfo) {
+    }
+// Invoked when end user clicked on the interstitial ad
+    void InterstitialOnAdClickedEvent(IronSourceAdInfo adInfo) {
+    }
+// Invoked when the ad failed to show.
+    void InterstitialOnAdShowFailedEvent(IronSourceError ironSourceError, IronSourceAdInfo adInfo) {
+    }
+// Invoked when the interstitial ad closed and the user went back to the application screen.
+    void InterstitialOnAdClosedEvent(IronSourceAdInfo adInfo) {
+    }
+// Invoked before the interstitial ad was opened, and before the InterstitialOnAdOpenedEvent is reported.
+// This callback is not supported by all networks, and we recommend using it only if  
+// it's supported by all networks you included in your build. 
+    void InterstitialOnAdShowSucceededEvent(IronSourceAdInfo adInfo) {
+    }
+    # endregion
+
 
     private void Update() {
         switch (currentGameState) {
@@ -333,6 +429,24 @@ public class GameManager : MonoBehaviour {
         panelPlay.SetActive(true);
         IsStuck = false;
         isCurrentLevelCompleted = false;
+        levelsWithoutAds++;
+        switch (levelsWithoutAds)
+        {
+            case >= 3:
+                if (IronSource.Agent.isInterstitialReady())
+                {
+                    levelsWithoutAds = 0;
+                    Debug.Log("Showing Interstitial");
+                    IronSource.Agent.showInterstitial();
+                    IronSource.Agent.loadInterstitial();
+                }
+                else
+                {
+                    Debug.Log("Interstitial not ready");
+                }
+                break;
+        }
+
         StartCoroutine(UnlockMovement(0.0f));
     }
 
