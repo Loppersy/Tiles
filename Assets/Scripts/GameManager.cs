@@ -443,6 +443,7 @@ public class GameManager : MonoBehaviour {
                 else
                 {
                     Debug.Log("Interstitial not ready");
+                    IronSource.Agent.loadInterstitial();
                 }
                 break;
         }
